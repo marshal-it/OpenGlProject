@@ -54,7 +54,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>C:\Program Files %28x86%29\Microsoft Visual Studio 12.0\VC\opengl\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files %28x86%29\Microsoft Visual Studio 12.0\VC\opengl\lib\GLEW\Debug\Win32;C:\Program Files %28x86%29\Microsoft Visual Studio 12.0\VC\opengl\lib\GLFW\Debug\Win32;$(LibraryPath)</LibraryPath>
+    <LibraryPath>C:\Program Files %28x86%29\Microsoft Visual Studio 12.0\VC\opengl\lib\GLEW\Debug\Win32;C:\Program Files %28x86%29\Microsoft Visual Studio 12.0\VC\opengl\lib\GLFW\Debug\Win32;C:\Program Files %28x86%29\Microsoft Visual Studio 12.0\VC\opengl\lib\SOIL\Debug\Win32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>C:\Program Files %28x86%29\Microsoft Visual Studio 12.0\VC\opengl\include;$(IncludePath)</IncludePath>
@@ -72,7 +72,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glew32sd.lib;glfw3.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glew32sd.lib;glfw3.lib;opengl32.lib;SOIL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -101,9 +101,11 @@
     <ClCompile Include="ogl3.cpp" />
     <ClCompile Include="TestStart.cpp" />
     <ClCompile Include="textfile.cpp" />
+    <ClCompile Include="textures_combined.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="SoilLoad.h" />
     <ClInclude Include="textfile.h" />
   </ItemGroup>
   <ItemGroup>
@@ -112,6 +114,8 @@
     <None Include="minimal.frag" />
     <None Include="test.vert" />
     <None Include="test2.frag" />
+    <None Include="textcoord.frag" />
+    <None Include="textcoord.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
