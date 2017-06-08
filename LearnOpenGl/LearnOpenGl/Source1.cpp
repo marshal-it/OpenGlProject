@@ -83,7 +83,7 @@ int main()
 
 
 	// Build and compile our shader program
-	Shader lightingShader("LightObjectMaterialTexture.vert", "LightObjectMaterialTexture.frag"); //接收灯光物体
+	Shader lightingShader("LightObjectMaterialTexture.vert", "SpotLight.frag"); //接收灯光物体
 	Shader lampShader("LightPoint.vert", "LightPoint.frag"); //灯光点
 
 	// Set up vertex data (and buffer(s)) and attribute pointers
@@ -132,6 +132,21 @@ int main()
 		-0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f
 	};
 
+	// Positions all containers
+	glm::vec3 cubePositions[] = {
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(2.0f, 5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3(2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f, 3.0f, -7.5f),
+		glm::vec3(1.3f, -2.0f, -2.5f),
+		glm::vec3(1.5f, 2.0f, -2.5f),
+		glm::vec3(1.5f, 0.2f, -1.5f),
+		glm::vec3(-1.3f, 1.0f, -1.5f)
+	};
+
+
 	//灯光和接收灯光物体需要使用不同的着色器程序VAO，避免相互之间受影响
 	//同时我们设定他们都是正方体，所以可以共用一套顶点缓冲VBO
 	// First, set the container's VAO (and VBO)
@@ -174,7 +189,7 @@ int main()
 	lightingShader.Use();
 	glUniform1i(glGetUniformLocation(lightingShader.Program, "material.diffuse"), 0);
 	glUniform1i(glGetUniformLocation(lightingShader.Program, "material.specular"), 1);
-	glUniform1i(glGetUniformLocation(lightingShader.Program, "material.emission"), 2);
+//	glUniform1i(glGetUniformLocation(lightingShader.Program, "material.emission"), 2);
 
 	// Game loop
 	while (!glfwWindowShouldClose(window))
@@ -200,14 +215,19 @@ int main()
 		GLint lightPosLoc = glGetUniformLocation(lightingShader.Program, "lightPos"); //灯光坐标
 		GLint viewPosLoc = glGetUniformLocation(lightingShader.Program, "viewPos"); //玩家视觉坐标
 
+	//	GLint lightDirPos = glGetUniformLocation(lightingShader.Program, "light.direction");
+	//	glUniform3f(lightDirPos, -2.0f, -1.0f, -0.3f);
+
 		glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f);
 		glUniform3f(lightColorLoc, 1.0f, 1.0f, 1.0f);
-		glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
+		//glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
+		glUniform3f(lightPosLoc, camera.Position.x, camera.Position.y, camera.Position.z); //聚光点在相机点
 		glUniform3f(viewPosLoc, camera.Position.x, camera.Position.y, camera.Position.z);
 
+
 		//材质
-		//GLint matAmbientLoc = glGetUniformLocation(lightingShader.Program, "material.ambient");
-	//	GLint matDiffuseLoc = glGetUniformLocation(lightingShader.Program, "material.diffuse");
+		GLint matAmbientLoc = glGetUniformLocation(lightingShader.Program, "material.ambient");
+		GLint matDiffuseLoc = glGetUniformLocation(lightingShader.Program, "material.diffuse");
 		GLint matSpecularLoc = glGetUniformLocation(lightingShader.Program, "material.specular");
 		GLint matShineLoc = glGetUniformLocation(lightingShader.Program, "material.shininess");
 
@@ -220,16 +240,18 @@ int main()
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, emissionTexture);
 
-	//	glUniform3f(matAmbientLoc, 1.0f, 0.5f, 0.31f);
-	//	glUniform3f(matDiffuseLoc, 1.0f, 0.5f, 0.31f);
+		glUniform3f(matAmbientLoc, 1.0f, 0.5f, 0.31f);
+		glUniform3f(matDiffuseLoc, 1.0f, 0.5f, 0.31f);
 		glUniform3f(matSpecularLoc, 0.5f, 0.5f, 0.5f);
-		glUniform1f(matShineLoc, 64.0f);
+		glUniform1f(matShineLoc, 32.0f);
 
 		//灯光信息
 		GLint lightAmbientLoc = glGetUniformLocation(lightingShader.Program, "light.ambient");
 		GLint lightDiffuseLoc = glGetUniformLocation(lightingShader.Program, "light.diffuse");
 		GLint lightSpecularLoc = glGetUniformLocation(lightingShader.Program, "light.specular");
 	//	GLint matShineLoc = glGetUniformLocation(lightingShader.Program, "material.shininess");
+		GLint lightSpotDirLoc = glGetUniformLocation(lightingShader.Program, "light.direction");
+
 
 		//灯光颜色和运动影响物体表面反射光
 		//glm::vec3 lightColor;
@@ -249,6 +271,14 @@ int main()
 		glUniform3f(glGetUniformLocation(lightingShader.Program, "light.diffuse"), 0.5f, 0.5f, 0.5f);
 		glUniform3f(glGetUniformLocation(lightingShader.Program, "light.specular"), 1.0f, 1.0f, 1.0f);
 
+		glUniform3f(lightSpotDirLoc, camera.Front.x, camera.Front.y, camera.Front.z); //聚光坐标在相机前方
+		glUniform1f(glGetUniformLocation(lightingShader.Program, "light.cutOff"), glm::cos(glm::radians(12.5f))); //聚光内切线弧度
+		glUniform1f(glGetUniformLocation(lightingShader.Program, "light.outerCutOff"), glm::cos(glm::radians(17.5f))); //聚光外切线弧度
+
+		//glUniform1f(glGetUniformLocation(lightingShader.Program, "light.constant"), 1.0f);
+		//glUniform1f(glGetUniformLocation(lightingShader.Program, "light.linear"), 0.09f);
+		//glUniform1f(glGetUniformLocation(lightingShader.Program, "light.quadratic"), 0.032f);
+
 		// Create camera transformations
 		glm::mat4 view;
 		view = camera.GetViewMatrix();
@@ -264,8 +294,19 @@ int main()
 		// Draw the container (using container's vertex attributes)
 		glBindVertexArray(containerVAO);
 		glm::mat4 model;
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		for (GLuint i = 0; i < 10; i++)
+		{
+			model = glm::mat4();
+			model = glm::translate(model, cubePositions[i]);
+			GLfloat angle = 20.0f * i;
+			model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f));
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
+
 		glBindVertexArray(0);
 
 		// Also draw the lamp object, again binding the appropriate shader
